@@ -9,6 +9,29 @@
 import UIKit
 
 extension UIView {
+    func inputContainerView(with image : UIImage , textField : UITextField) -> UIView {
+        let view = UIView()
+        let imageView = UIImageView()
+        imageView.image = image
+        imageView.alpha = 0.87
+        view.addSubview(imageView)
+        imageView.centerY(inView: view)
+        imageView.anchor(left: view.leftAnchor, paddingLeft: 12, width: 24, height: 24)
+        
+        //add text field
+        view.addSubview(textField)
+        textField.anchor(bottom: view.bottomAnchor, left: imageView.rightAnchor, right: view.rightAnchor, paddingBottom: 8, paddingLeft: 8)
+        textField.centerY(inView: view)
+
+        //add seperator view
+        let seperatorView = UIView()
+        seperatorView.backgroundColor = .lightGray
+        view.addSubview(seperatorView)
+        seperatorView.anchor(bottom:view.bottomAnchor, left: view.leftAnchor, right: view.rightAnchor,  paddingBottom: 8, height: 0.75)
+        
+        return view
+    }
+    
     func anchor(top: NSLayoutYAxisAnchor? = nil,
                 bottom: NSLayoutYAxisAnchor? = nil,
                 left: NSLayoutXAxisAnchor? = nil,
@@ -56,5 +79,18 @@ extension UIView {
     
     func centerY(inView : UIView){
         centerYAnchor.constraint(equalTo: inView.centerYAnchor).isActive = true
+    }
+}
+
+extension UITextField {
+    func textField(with placeholder : String = "" , isSecureEntry : Bool = false) -> UITextField {
+        let tf = UITextField()
+        tf.borderStyle = .none
+        tf.keyboardAppearance = .dark
+        tf.isSecureTextEntry = isSecureEntry
+        tf.attributedPlaceholder = NSAttributedString(string: placeholder, attributes: [NSAttributedString.Key.foregroundColor : UIColor.lightGray])
+        tf.font = UIFont.systemFont(ofSize: 16)
+        tf.textColor = UIColor(white: 1, alpha: 0.8)
+        return tf
     }
 }

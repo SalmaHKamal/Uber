@@ -35,9 +35,8 @@ class LoginViewController: UIViewController {
     func setupTitleLabel(){
         view.addSubview(titleLabel)
         
-        titleLabel.translatesAutoresizingMaskIntoConstraints = false
-        titleLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor).isActive = true
-        titleLabel.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 0).isActive = true
+        titleLabel.anchor(top: view.safeAreaLayoutGuide.topAnchor)
+        titleLabel.centerX(inView: self.view) 
     }
     
     override var preferredStatusBarStyle: UIStatusBarStyle {

@@ -18,6 +18,13 @@ extension UIColor {
 }
 
 extension UIView {
+    func setShadow() {
+        layer.shadowColor = UIColor.black.cgColor
+        layer.shadowOffset = CGSize(width: 0.5, height: 0.5)
+        layer.shadowOpacity = 0.55
+        layer.masksToBounds = false
+    }
+    
     func inputContainerView(with image : UIImage , textField : UITextField? = nil , segmentedControl : UISegmentedControl? = nil) -> UIView {
         let view = UIView()
         let imageView = UIImageView()
@@ -97,10 +104,12 @@ extension UIView {
     
     
     func centerX(inView : UIView){
+        translatesAutoresizingMaskIntoConstraints = false
         centerXAnchor.constraint(equalTo: inView.centerXAnchor).isActive = true
     }
     
     func centerY(inView : UIView , constant : CGFloat = 0){
+        translatesAutoresizingMaskIntoConstraints = false
         centerYAnchor.constraint(equalTo: inView.centerYAnchor , constant: constant).isActive = true
     }
 }

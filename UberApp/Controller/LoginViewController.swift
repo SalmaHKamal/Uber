@@ -33,8 +33,6 @@ class LoginViewController: UIViewController {
         return view
     }()
     
-    
-    
     private let emailTextField : UITextField = {
         return UITextField().textField(with: "Email")
     }()
@@ -43,38 +41,61 @@ class LoginViewController: UIViewController {
         return UITextField().textField(with: "Password")
     }()
      
+    private let loginButton : UIButton = {
+        let btn = UIButton()
+        btn.setTitle("Log in", for: .normal)
+        btn.backgroundColor = .mainBlue
+        btn.titleLabel?.textColor = UIColor(white: 1, alpha: 0.5)
+        btn.layer.cornerRadius = 5
+        btn.titleLabel?.font = UIFont.boldSystemFont(ofSize: 20)
+//        btn.heightAnchor.constraint(equalToConstant: 50).isActive = true
+        return btn
+    }()
+    
+    private let donotHaveAccountButton : UIButton = {
+        let btn = UIButton(type: .system)
+        let attributedTitle = NSMutableAttributedString(string: "Don't Have an Account ? ", attributes: [NSAttributedString.Key.font : UIFont.systemFont(ofSize: 16) ,
+                                                                                                 NSAttributedString.Key.foregroundColor: UIColor.lightGray])
+        
+        attributedTitle.append(NSAttributedString(string: "Sign Up", attributes: [NSAttributedString.Key.font : UIFont.boldSystemFont(ofSize: 16),
+                                                                                  NSAttributedString.Key.foregroundColor: UIColor.mainBlue]))
+        btn.addTarget(self, action: #selector(signUpBtnPressed), for: .touchUpInside)
+        btn.setAttributedTitle(attributedTitle, for: .normal)
+        return btn
+    }()
+    
     // MARK: - LifeCycle
 
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        view.backgroundColor = UIColor.init(red: 25/255, green: 25/255 , blue: 25/255, alpha: 1)
+        view.backgroundColor = .backgroundColor
         setupTitleLabel()
         setupTextFieldsStackView()
-//        setupEmailContainerView()
-//        setupPasswordContainerView()
+        setupDontHaveAccButton()
+        setupNavigationBar()
     }
     
     
     // MARK: - Helper Methods
+    func setupNavigationBar(){
+        navigationController?.navigationBar.isHidden = true
+        navigationController?.navigationBar.barStyle = .black
+    }
+    
+    func setupDontHaveAccButton(){
+        view.addSubview(donotHaveAccountButton)
+        donotHaveAccountButton.anchor(bottom: view.safeAreaLayoutGuide.bottomAnchor , height: 32 )
+        donotHaveAccountButton.centerX(inView: view)
+    }
     
     func setupTextFieldsStackView(){
-        let stackView = UIStackView(arrangedSubviews: [emailContainerView , passwordContainerView])
+        let stackView = UIStackView(arrangedSubviews: [emailContainerView , passwordContainerView , loginButton])
         stackView.axis = .vertical
         stackView.spacing = 16
         stackView.distribution = .fillEqually
         view.addSubview(stackView)
         stackView.anchor(top: titleLabel.bottomAnchor, left: view.leftAnchor, right: view.rightAnchor, paddingRight: 16, paddingLeft: 16, paddingTop: 40)
-    }
-
-    func setupPasswordContainerView(){
-        view.addSubview(passwordContainerView)
-        passwordContainerView.anchor(top: emailContainerView.bottomAnchor, left: view.leftAnchor, right: view.rightAnchor, paddingRight: 16, paddingLeft: 16, paddingTop: 16, height: 50)
-    }
-    
-    func setupEmailContainerView(){
-        view.addSubview(emailContainerView)
-        emailContainerView.anchor(top: titleLabel.bottomAnchor, left: view.leftAnchor, right: view.rightAnchor, paddingRight: 16, paddingLeft: 16, paddingTop: 40, height: 50)
     }
     
     func setupTitleLabel(){
@@ -84,8 +105,9 @@ class LoginViewController: UIViewController {
         titleLabel.centerX(inView: self.view) 
     }
     
-    override var preferredStatusBarStyle: UIStatusBarStyle {
-        return .lightContent
+    // MARK: - Actions
+    @objc func signUpBtnPressed(){
+        navigationController?.pushViewController(SignUpViewController(), animated: true)
     }
 }
 

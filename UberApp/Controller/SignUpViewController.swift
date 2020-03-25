@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import Firebase
 
 class SignUpViewController: UIViewController {
     
@@ -66,23 +67,24 @@ class SignUpViewController: UIViewController {
     }()
     
     private let passwordTextField : UITextField = {
-        return UITextField().textField(with: "Password")
+        return UITextField().textField(with: "Password" , isSecureEntry: true)
     }()
     
     private let signUpButton : UIButton = {
         let btn = AuthButton()
         btn.setTitle("Sign Up", for: .normal)
         btn.titleLabel?.font = UIFont.boldSystemFont(ofSize: 20)
+        btn.addTarget(self, action: #selector(signUpBtnPressed), for: .touchUpInside)
         return btn
     }()
     
     private let alreadyHaveAccountButton : UIButton = {
         let btn = UIButton(type: .system)
         let attributedTitle = NSMutableAttributedString(string: "Already Have an Account ? ", attributes: [NSAttributedString.Key.font : UIFont.systemFont(ofSize: 16) ,
-                                                                                                 NSAttributedString.Key.foregroundColor: UIColor.lightGray])
+                                                                                                           NSAttributedString.Key.foregroundColor: UIColor.lightGray])
         
         attributedTitle.append(NSAttributedString(string: "Login", attributes: [NSAttributedString.Key.font : UIFont.boldSystemFont(ofSize: 16),
-                                                                                  NSAttributedString.Key.foregroundColor: UIColor.mainBlue]))
+                                                                                NSAttributedString.Key.foregroundColor: UIColor.mainBlue]))
         btn.addTarget(self, action: #selector(alreadyHaveAccountPressed), for: .touchUpInside)
         btn.setAttributedTitle(attributedTitle, for: .normal)
         return btn
@@ -128,5 +130,55 @@ class SignUpViewController: UIViewController {
     // MARK: - Actions
     @objc func alreadyHaveAccountPressed(){
         navigationController?.popViewController(animated: true)
+    }
+    
+    @objc func signUpBtnPressed(){
+        guard let email = emailTextField.text ,
+            let password = passwordTextField.text ,
+            let fullName = fullNameTextField.text
+            else {
+                return
+        }
+        let accountTypeIndex = accountTypeSegmentedControl.selectedSegmentIndex
+        
+        //signup user
+        Auth.auth().createUser(withEmail: email, password: password) { (result, error) in
+            if let error = error {
+                print("Error while registering user => " , error.localizedDescription)
+            }else {
+                guard let uid = result?.user.uid else {
+                    return
+                }
+                
+                let values = ["email": email,
+                              "fullName": fullName,
+                              "accountType" : accountTypeIndex] as [String : Any]
+                
+                Database.database().reference().child("users").child(uid).updateChildValues(values) { (error, ref) in
+                    if let error = error {
+                        print("Error while saving user data ti db => " , error.localizedDescription)
+                        return
+                    }
+                    
+                    guard let controller = UIApplication.shared.connectedScenes
+                        .filter({$0.activationState == .foregroundActive})
+                        .map({$0 as? UIWindowScene})
+                        .compactMap({$0})
+                        .first?
+                        .windows
+                        .filter({$0.isKeyWindow}).first?
+                        .rootViewController as? HomeViewController
+                        else
+                    {
+                        print("can't fetch HomeViewController")
+                        return
+                    }
+                    
+                    controller.configUI()
+                    self.dismiss(animated: true, completion: nil)
+                }
+                
+            }
+        }
     }
 }

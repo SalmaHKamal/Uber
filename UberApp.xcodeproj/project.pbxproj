@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 50;
+	objectVersion = 51;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -11,6 +11,7 @@
 		804EB6C8242B17E6009CDF92 /* SignUpViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 804EB6C7242B17E6009CDF92 /* SignUpViewController.swift */; };
 		804EB6CA242B26DE009CDF92 /* AuthButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 804EB6C9242B26DE009CDF92 /* AuthButton.swift */; };
 		804EB6CC242B2E07009CDF92 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 804EB6CB242B2E07009CDF92 /* GoogleService-Info.plist */; };
+		804EB6CE242B3DA1009CDF92 /* HomeViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 804EB6CD242B3DA1009CDF92 /* HomeViewController.swift */; };
 		80D24443242A48A10092B2D0 /* LoginViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 80D24441242A48A10092B2D0 /* LoginViewController.swift */; };
 		80D24446242A52D50092B2D0 /* Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 80D24445242A52D50092B2D0 /* Extensions.swift */; };
 		80FE959C2420FF8F00969A1B /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 80FE959B2420FF8F00969A1B /* AppDelegate.swift */; };
@@ -40,6 +41,7 @@
 		804EB6C7242B17E6009CDF92 /* SignUpViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignUpViewController.swift; sourceTree = "<group>"; };
 		804EB6C9242B26DE009CDF92 /* AuthButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthButton.swift; sourceTree = "<group>"; };
 		804EB6CB242B2E07009CDF92 /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
+		804EB6CD242B3DA1009CDF92 /* HomeViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeViewController.swift; sourceTree = "<group>"; };
 		80D24441242A48A10092B2D0 /* LoginViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginViewController.swift; sourceTree = "<group>"; };
 		80D24445242A52D50092B2D0 /* Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Extensions.swift; sourceTree = "<group>"; };
 		80FE95982420FF8F00969A1B /* UberApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = UberApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -105,6 +107,7 @@
 			children = (
 				80D24441242A48A10092B2D0 /* LoginViewController.swift */,
 				804EB6C7242B17E6009CDF92 /* SignUpViewController.swift */,
+				804EB6CD242B3DA1009CDF92 /* HomeViewController.swift */,
 			);
 			path = Controller;
 			sourceTree = "<group>";
@@ -180,7 +183,6 @@
 				FD3483A3D207C126DE7413FC /* Pods-UberAppTests.debug.xcconfig */,
 				6EB4E138DE395F0A1BDCCFC0 /* Pods-UberAppTests.release.xcconfig */,
 			);
-			name = Pods;
 			path = Pods;
 			sourceTree = "<group>";
 		};
@@ -358,6 +360,7 @@
 				80FE959C2420FF8F00969A1B /* AppDelegate.swift in Sources */,
 				80FE959E2420FF8F00969A1B /* SceneDelegate.swift in Sources */,
 				80D24446242A52D50092B2D0 /* Extensions.swift in Sources */,
+				804EB6CE242B3DA1009CDF92 /* HomeViewController.swift in Sources */,
 				804EB6C8242B17E6009CDF92 /* SignUpViewController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

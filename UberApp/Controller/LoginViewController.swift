@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import Firebase
 
 class LoginViewController: UIViewController {
     
@@ -38,20 +39,21 @@ class LoginViewController: UIViewController {
     }()
     
     private let passwordTextField : UITextField = {
-        return UITextField().textField(with: "Password")
+        return UITextField().textField(with: "Password" , isSecureEntry: true)
     }()
-     
+    
     private let loginButton : UIButton = {
         let btn = AuthButton()
         btn.setTitle("Log in", for: .normal)
         btn.titleLabel?.font = UIFont.boldSystemFont(ofSize: 20)
+        btn.addTarget(self, action: #selector(loginBtnPressed), for: .touchUpInside)
         return btn
     }()
     
     private let donotHaveAccountButton : UIButton = {
         let btn = UIButton(type: .system)
         let attributedTitle = NSMutableAttributedString(string: "Don't Have an Account ? ", attributes: [NSAttributedString.Key.font : UIFont.systemFont(ofSize: 16) ,
-                                                                                                 NSAttributedString.Key.foregroundColor: UIColor.lightGray])
+                                                                                                         NSAttributedString.Key.foregroundColor: UIColor.lightGray])
         
         attributedTitle.append(NSAttributedString(string: "Sign Up", attributes: [NSAttributedString.Key.font : UIFont.boldSystemFont(ofSize: 16),
                                                                                   NSAttributedString.Key.foregroundColor: UIColor.mainBlue]))
@@ -61,10 +63,10 @@ class LoginViewController: UIViewController {
     }()
     
     // MARK: - LifeCycle
-
+    
     override func viewDidLoad() {
         super.viewDidLoad()
-
+        
         view.backgroundColor = .backgroundColor
         setupTitleLabel()
         setupTextFieldsStackView()
@@ -104,6 +106,37 @@ class LoginViewController: UIViewController {
     // MARK: - Actions
     @objc func DontHaveAccountBtnPressed(){
         navigationController?.pushViewController(SignUpViewController(), animated: true)
+    }
+    
+    @objc func loginBtnPressed(){
+        guard let email = emailTextField.text ,
+            let password = passwordTextField.text
+            else { return }
+        
+        Auth.auth().signIn(withEmail: email, password: password) { (result, error) in
+            if let error = error {
+                print("Error while login => " , error.localizedDescription)
+                return
+            }
+            
+            guard let controller = UIApplication.shared.connectedScenes
+                .filter({$0.activationState == .foregroundActive})
+                .map({$0 as? UIWindowScene})
+                .compactMap({$0})
+                .first?
+                .windows
+                .filter({$0.isKeyWindow}).first?
+                .rootViewController as? HomeViewController
+                else
+            {
+                print("can't fetch HomeViewController")
+                return
+            }
+            
+            controller.configUI()
+            self.dismiss(animated: true, completion: nil)
+            
+        }
     }
 }
 

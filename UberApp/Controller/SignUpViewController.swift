@@ -11,10 +11,122 @@ import UIKit
 class SignUpViewController: UIViewController {
     
     // MARK: - Properties
+    
+    private let titleLabel : UILabel = {
+        let label = UILabel()
+        label.text = "uber"
+        label.text = label.text?.uppercased()
+        label.textColor = UIColor(white: 1, alpha: 0.8)
+        label.font = UIFont(name: "Avenir-Light", size: 36)
+        return label
+    }()
+    
+    private lazy var emailContainerView : UIView = {
+        let view = UIView().inputContainerView(with: #imageLiteral(resourceName: "ic_mail_outline_white_2x"), textField: emailTextField)
+        view.heightAnchor.constraint(equalToConstant: 50).isActive = true
+        return view
+    }()
+    
+    private lazy var fullNameContainerView : UIView = {
+        let view = UIView().inputContainerView(with: #imageLiteral(resourceName: "ic_person_outline_white_2x"), textField: fullNameTextField)
+        view.heightAnchor.constraint(equalToConstant: 50).isActive = true
+        return view
+    }()
+    
+    private lazy var accountTypeContainerView : UIView = {
+        let view = UIView().inputContainerView(with: #imageLiteral(resourceName: "ic_account_box_white_2x"), segmentedControl: accountTypeSegmentedControl)
+        view.heightAnchor.constraint(equalToConstant: 80).isActive = true
+        return view
+    }()
+    
+    private lazy var passwordContainerView : UIView = {
+        let view = UIView().inputContainerView(with: #imageLiteral(resourceName: "ic_lock_outline_white_2x"), textField: passwordTextField)
+        view.heightAnchor.constraint(equalToConstant: 50).isActive = true
+        return view
+    }()
+    
+    private let accountTypeSegmentedControl : UISegmentedControl = {
+        let sc = UISegmentedControl(items: ["Rider" , "Driver"])
+        sc.backgroundColor = .backgroundColor
+        sc.tintColor = UIColor(white: 1, alpha: 0.87)
+        sc.selectedSegmentTintColor = UIColor(white: 1, alpha: 0.87)
+        sc.selectedSegmentIndex = 0
+        sc.setTitleTextAttributes([NSAttributedString.Key.foregroundColor : UIColor.white], for: .normal)
+        sc.setTitleTextAttributes([NSAttributedString.Key.foregroundColor : UIColor.black], for: .selected)
+        
+        return sc
+    }()
+    
+    private let emailTextField : UITextField = {
+        return UITextField().textField(with: "Email")
+    }()
+    
+    private let fullNameTextField : UITextField = {
+        return UITextField().textField(with: "FullName")
+    }()
+    
+    private let passwordTextField : UITextField = {
+        return UITextField().textField(with: "Password")
+    }()
+    
+    private let signUpButton : UIButton = {
+        let btn = AuthButton()
+        btn.setTitle("Sign Up", for: .normal)
+        btn.titleLabel?.font = UIFont.boldSystemFont(ofSize: 20)
+        return btn
+    }()
+    
+    private let alreadyHaveAccountButton : UIButton = {
+        let btn = UIButton(type: .system)
+        let attributedTitle = NSMutableAttributedString(string: "Already Have an Account ? ", attributes: [NSAttributedString.Key.font : UIFont.systemFont(ofSize: 16) ,
+                                                                                                 NSAttributedString.Key.foregroundColor: UIColor.lightGray])
+        
+        attributedTitle.append(NSAttributedString(string: "Login", attributes: [NSAttributedString.Key.font : UIFont.boldSystemFont(ofSize: 16),
+                                                                                  NSAttributedString.Key.foregroundColor: UIColor.mainBlue]))
+        btn.addTarget(self, action: #selector(alreadyHaveAccountPressed), for: .touchUpInside)
+        btn.setAttributedTitle(attributedTitle, for: .normal)
+        return btn
+    }()
+    
     // MARK: - LifeCycle
     override func viewDidLoad() {
-        view.backgroundColor = .red
+        view.backgroundColor = .backgroundColor
+        setupTitleLabel()
+        setupTextFieldsStackView()
+        setupAlreadyHaveAccountBtn()
+    }
+    
+    // MARK: - Helper Methods
+    func setupAlreadyHaveAccountBtn(){
+        view.addSubview(alreadyHaveAccountButton)
+        alreadyHaveAccountButton.anchor(bottom: view.safeAreaLayoutGuide.bottomAnchor , height: 32 )
+        alreadyHaveAccountButton.centerX(inView: view)
+    }
+    
+    func setupTextFieldsStackView(){
+        let stackView = UIStackView(arrangedSubviews:
+            [emailContainerView ,
+             fullNameContainerView,
+             passwordContainerView ,
+             accountTypeContainerView ,
+             signUpButton])
+        
+        stackView.axis = .vertical
+        stackView.spacing = 16
+        stackView.distribution = .fillProportionally
+        view.addSubview(stackView)
+        stackView.anchor(top: titleLabel.bottomAnchor, left: view.leftAnchor, right: view.rightAnchor, paddingRight: 16, paddingLeft: 16, paddingTop: 40)
+    }
+    
+    func setupTitleLabel(){
+        view.addSubview(titleLabel)
+        
+        titleLabel.anchor(top: view.safeAreaLayoutGuide.topAnchor)
+        titleLabel.centerX(inView: self.view)
     }
     
     // MARK: - Actions
+    @objc func alreadyHaveAccountPressed(){
+        navigationController?.popViewController(animated: true)
+    }
 }

@@ -42,13 +42,9 @@ class LoginViewController: UIViewController {
     }()
      
     private let loginButton : UIButton = {
-        let btn = UIButton()
+        let btn = AuthButton()
         btn.setTitle("Log in", for: .normal)
-        btn.backgroundColor = .mainBlue
-        btn.titleLabel?.textColor = UIColor(white: 1, alpha: 0.5)
-        btn.layer.cornerRadius = 5
         btn.titleLabel?.font = UIFont.boldSystemFont(ofSize: 20)
-//        btn.heightAnchor.constraint(equalToConstant: 50).isActive = true
         return btn
     }()
     
@@ -59,7 +55,7 @@ class LoginViewController: UIViewController {
         
         attributedTitle.append(NSAttributedString(string: "Sign Up", attributes: [NSAttributedString.Key.font : UIFont.boldSystemFont(ofSize: 16),
                                                                                   NSAttributedString.Key.foregroundColor: UIColor.mainBlue]))
-        btn.addTarget(self, action: #selector(signUpBtnPressed), for: .touchUpInside)
+        btn.addTarget(self, action: #selector(DontHaveAccountBtnPressed), for: .touchUpInside)
         btn.setAttributedTitle(attributedTitle, for: .normal)
         return btn
     }()
@@ -106,7 +102,7 @@ class LoginViewController: UIViewController {
     }
     
     // MARK: - Actions
-    @objc func signUpBtnPressed(){
+    @objc func DontHaveAccountBtnPressed(){
         navigationController?.pushViewController(SignUpViewController(), animated: true)
     }
 }

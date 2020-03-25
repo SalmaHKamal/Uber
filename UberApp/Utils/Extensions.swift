@@ -18,19 +18,33 @@ extension UIColor {
 }
 
 extension UIView {
-    func inputContainerView(with image : UIImage , textField : UITextField) -> UIView {
+    func inputContainerView(with image : UIImage , textField : UITextField? = nil , segmentedControl : UISegmentedControl? = nil) -> UIView {
         let view = UIView()
         let imageView = UIImageView()
         imageView.image = image
         imageView.alpha = 0.87
         view.addSubview(imageView)
-        imageView.centerY(inView: view)
-        imageView.anchor(left: view.leftAnchor, paddingLeft: 12, width: 24, height: 24)
         
         //add text field
-        view.addSubview(textField)
-        textField.anchor(bottom: view.bottomAnchor, left: imageView.rightAnchor, right: view.rightAnchor, paddingBottom: 8, paddingLeft: 8)
-        textField.centerY(inView: view)
+        if let textField = textField {
+
+            imageView.centerY(inView: view)
+            imageView.anchor(left: view.leftAnchor, width: 24, height: 24)
+            
+            view.addSubview(textField)
+            textField.anchor(left: imageView.rightAnchor, right: view.rightAnchor , paddingLeft: 8)
+            textField.centerY(inView: view)
+        }
+        
+        if let segmentedControl = segmentedControl {
+
+            imageView.anchor(top: view.topAnchor , left: view.leftAnchor, paddingLeft: 12, paddingTop: -8, width: 24, height: 24)
+            view.addSubview(segmentedControl)
+            
+            segmentedControl.centerY(inView: view, constant: 8)
+            segmentedControl.anchor(left: view.leftAnchor, right: view.rightAnchor, paddingRight: 8, paddingLeft: 8)
+            
+        }
 
         //add seperator view
         let seperatorView = UIView()
@@ -86,8 +100,8 @@ extension UIView {
         centerXAnchor.constraint(equalTo: inView.centerXAnchor).isActive = true
     }
     
-    func centerY(inView : UIView){
-        centerYAnchor.constraint(equalTo: inView.centerYAnchor).isActive = true
+    func centerY(inView : UIView , constant : CGFloat = 0){
+        centerYAnchor.constraint(equalTo: inView.centerYAnchor , constant: constant).isActive = true
     }
 }
 

@@ -11,6 +11,11 @@ import UIKit
 class SearchLocationView: UIView {
     
     // MARK: - Properties
+    var user: User?{
+        didSet{
+            titleLabel.text = user?.fullName
+        }
+    }
     var didPressBackButton : (() -> Void)?
     private let backButton : UIButton = {
         let btn = UIButton()

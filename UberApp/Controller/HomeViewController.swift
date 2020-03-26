@@ -21,6 +21,11 @@ class HomeViewController: UIViewController {
     private let searchLlocationView = SearchLocationView()
     private let tableView = UITableView()
     private let topLocationViewHeight : CGFloat = 200
+    var user : User?{
+        didSet{
+            searchLlocationView.user = user
+        }
+    }
     
     
     // MARK: - LifeCylce
@@ -28,9 +33,16 @@ class HomeViewController: UIViewController {
         isUserLoggedIn()
         enableLocationService()
         setupTableView()
+        fetchUserData()
     }
     
     // MARK: - Helper Methods
+    func fetchUserData(){
+        Service.shared.fetchUserData { (user) in
+            self.user = user
+        }
+    }
+    
     func isUserLoggedIn(){
         if let _ = Auth.auth().currentUser?.uid {
             configUI()
@@ -103,10 +115,10 @@ extension HomeViewController {
             guard let safeSelf = self else { return }
             UIView.animate(withDuration: 0.2, animations: {
                 safeSelf.searchLlocationView.alpha = 0
+                safeSelf.tableView.frame.origin.y = safeSelf.view.frame.height
             }) { (_) in
                 safeSelf.searchLlocationView.removeFromSuperview()
                 UIView.animate(withDuration: 0.2) {
-                    safeSelf.tableView.frame.origin.y = safeSelf.view.frame.height
                     safeSelf.whereToView.alpha = 1
                 }
             }

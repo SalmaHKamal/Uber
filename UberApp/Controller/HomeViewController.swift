@@ -38,6 +38,7 @@ class HomeViewController: UIViewController {
         }
     }
     private var actionButtonConfig = ActionButtonConfiguration()
+    private var route: MKRoute?
     
     private let actionButton: UIButton = {
         let btn = UIButton(type: .system)
@@ -101,9 +102,12 @@ class HomeViewController: UIViewController {
             print("dismiss")
             UIView.animate(withDuration: 0.2) {
                 self.whereToView.alpha = 1
+                self.actionButtonConfig = .openMenu
+                self.actionButton.setImage(#imageLiteral(resourceName: "baseline_menu_black_36dp").withRenderingMode(.alwaysOriginal), for: .normal)
             }
-            self.actionButtonConfig = .openMenu
-            actionButton.setImage(#imageLiteral(resourceName: "baseline_menu_black_36dp").withRenderingMode(.alwaysOriginal), for: .normal)
+            
+            removeAnnotationsAndOverlays()
+            
         case .openMenu:
             print("openMenu")
         }
@@ -202,14 +206,16 @@ extension HomeViewController {
         UIView.animate(withDuration: 0.2, animations: {
             self.searchLlocationView.alpha = 1
         }) { (_) in
-            UIView.animate(withDuration: 0.3) {
+            UIView.animate(withDuration: 0.1) {
                 self.tableView.frame.origin.y = self.topLocationViewHeight
             }
         }
         
         searchLlocationView.didPressBackButton = { [weak self]  in
             guard let safeSelf = self else { return }
-            safeSelf.dismissSearchLocationView(safeSelf)
+            safeSelf.dismissSearchLocationView(safeSelf , completion: { _ in
+                safeSelf.whereToView.alpha = 1
+            })
         }
         
         searchLlocationView.didEnterData = { [unowned self] query in
@@ -307,7 +313,11 @@ extension HomeViewController : UITableViewDelegate , UITableViewDataSource {
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        let selectedPlacemark = searchResults[indexPath.row]
         handleActionButton()
+        let destination = MKMapItem(placemark: selectedPlacemark)
+        generatePolyline(toDestination: destination)
+        
         dismissSearchLocationView(self) { _  in
             let placemark = self.searchResults[indexPath.row]
             let annotation = MKPointAnnotation()
@@ -325,6 +335,7 @@ extension HomeViewController : UITableViewDelegate , UITableViewDataSource {
     
 }
 
+// MARK: - Mapkit
 extension HomeViewController: MKMapViewDelegate{
     func mapView(_ mapView: MKMapView, viewFor annotation: MKAnnotation) -> MKAnnotationView? {
         if let annotation = annotation as? DriverAnnotation {
@@ -334,5 +345,43 @@ extension HomeViewController: MKMapViewDelegate{
         }
         
         return nil
+    }
+    
+    func mapView(_ mapView: MKMapView, rendererFor overlay: MKOverlay) -> MKOverlayRenderer {
+        if let route = self.route {
+            let polyline = route.polyline
+            let lineRenderer = MKPolylineRenderer(overlay: polyline)
+            lineRenderer.strokeColor = .mainBlue
+            lineRenderer.lineWidth = 4
+            return lineRenderer
+        }
+        return MKOverlayRenderer()
+    }
+    
+    func generatePolyline(toDestination destination: MKMapItem) {
+        let request = MKDirections.Request()
+        request.source = MKMapItem.forCurrentLocation()
+        request.destination = destination
+        request.transportType = .automobile
+        
+        let directionRequest = MKDirections(request: request)
+        directionRequest.calculate { (response, error) in
+            guard let response = response else { return }
+            self.route = response.routes[0]
+            guard let polyline = self.route?.polyline else { return }
+            self.mapView.addOverlay(polyline)
+        }
+    }
+    
+    func removeAnnotationsAndOverlays() {
+        mapView.annotations.forEach { (annotation) in
+            if let anno = annotation as? MKPointAnnotation {
+                mapView.removeAnnotation(anno)
+            }
+        }
+        
+        if mapView.overlays.count > 0 {
+            mapView.removeOverlay(mapView.overlays[0])
+        }
     }
 }

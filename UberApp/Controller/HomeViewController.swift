@@ -11,12 +11,13 @@ import Firebase
 import MapKit
 
 private let reuseIdentifier = "Cell"
+private let driverAnnotation = "DriverAnnotation"
 
 class HomeViewController: UIViewController {
     
     // MARK: - Properties
     private let mapView = MKMapView()
-    private let locationManager = CLLocationManager()
+    private let locationManager = LocationHandler.shared.locationManager
     private let whereToView = WhereToView()
     private let searchLlocationView = SearchLocationView()
     private let tableView = UITableView()
@@ -34,13 +35,74 @@ class HomeViewController: UIViewController {
         enableLocationService()
         setupTableView()
         fetchUserData()
+        fetchDriverData()
     }
     
-    // MARK: - Helper Methods
+    // MARK: - APi calls
     func fetchUserData(){
-        Service.shared.fetchUserData { (user) in
+        guard let uid = Auth.auth().currentUser?.uid else { return }
+        Service.shared.fetchUserData(uid: uid) { (user) in
             self.user = user
         }
+    }
+    
+    func fetchDriverData(){
+        guard let location = locationManager?.location else { return }
+        Service.shared.fetchDriverData(location: location) { (driver) in
+            
+            guard let coordinate = driver.location?.coordinate else { return }
+            let annotation = DriverAnnotation(uid: driver.uid, coordinate: coordinate)
+            
+            var driverIsVisible: Bool {
+                return self.mapView.annotations.contains(where: { annotation -> Bool in
+                    guard let driverAnno = annotation as? DriverAnnotation else { return false }
+                    if driverAnno.uid == driver.uid {
+                        driverAnno.updateAnnotationLocation(coordinate: coordinate)
+                        return true
+                    }
+                    return false
+                })
+            }
+            
+            if !driverIsVisible {
+                self.mapView.addAnnotation(annotation)
+            }
+            
+//            guard let coordinate = driver.location?.coordinate else { return }
+//            let annotation = DriverAnnotation(uid: driver.uid, coordinate: coordinate )
+//            let updateAnnotation = self?.mapView.annotations.contains(where: { (anno) -> Bool in
+//                guard let anno = anno as? DriverAnnotation else { return false }
+//                if anno.uid == driver.uid {
+//                    self?.updateAnnotationView(annotation: annotation)
+//                    return true
+//                }else {
+//                    return false
+//                }
+//            })
+//
+//            if !(updateAnnotation ?? false) {
+//                self?.addNewAnnotation(annotation: annotation)
+//            }
+////            self?.mapView.annotations.forEach { (anno) in
+////                guard let anno = anno as? DriverAnnotation else { return }
+////                if anno.uid == driver.uid{
+////                    guard let coordinate = driver.location?.coordinate else { return }
+////                    self?.updateAnnotationView(annotation: anno , coordinate: coordinate)
+////                }else {
+////                    self?.addNewAnnotation(annotation: annotation)
+////                }
+////            }
+        }
+    }
+    
+    
+    // MARK: - Helper Methods
+    func addNewAnnotation(annotation: MKAnnotation){
+        mapView.addAnnotation(annotation)
+    }
+    
+    func updateAnnotationView(annotation:DriverAnnotation){
+        annotation.updateAnnotationLocation(coordinate: annotation.coordinate)
     }
     
     func isUserLoggedIn(){
@@ -56,10 +118,15 @@ class HomeViewController: UIViewController {
     }
     
     func logOut(){
-        do {
+        do{
             try Auth.auth().signOut()
+            DispatchQueue.main.async {
+                let nav = UINavigationController(rootViewController: LoginViewController())
+                nav.modalPresentationStyle = .fullScreen
+                self.present(nav, animated: true, completion: nil)
+            }
         }catch{
-            print("Error while sign out => " , error.localizedDescription)
+            print("Failed signing out => " , error.localizedDescription)
         }
     }
     
@@ -69,6 +136,7 @@ class HomeViewController: UIViewController {
     
     func setupMapView(){
         view.addSubview(mapView)
+        mapView.delegate = self
         mapView.frame = view.frame
         mapView.showsUserLocation = true
         mapView.userTrackingMode = .follow
@@ -139,28 +207,20 @@ extension HomeViewController {
 }
 
 // MARK: - Location Services
-extension HomeViewController : CLLocationManagerDelegate {
+extension HomeViewController {
     func enableLocationService(){
-        locationManager.delegate = self
-        
         switch CLLocationManager.authorizationStatus() {
         case .restricted , .denied:
             break
         case .authorizedAlways:
-            locationManager.startUpdatingLocation()
-            locationManager.desiredAccuracy = kCLLocationAccuracyBest
+            locationManager?.startUpdatingLocation()
+            locationManager?.desiredAccuracy = kCLLocationAccuracyBest
         case .authorizedWhenInUse:
-            locationManager.requestAlwaysAuthorization()
+            locationManager?.requestAlwaysAuthorization()
         case .notDetermined:
-            locationManager.requestWhenInUseAuthorization()
+            locationManager?.requestWhenInUseAuthorization()
         default:
             break
-        }
-    }
-    
-    func locationManager(_ manager: CLLocationManager, didChangeAuthorization status: CLAuthorizationStatus) {
-        if status == .authorizedWhenInUse {
-            locationManager.requestAlwaysAuthorization()
         }
     }
 }
@@ -198,4 +258,16 @@ extension HomeViewController : UITableViewDelegate , UITableViewDataSource {
     
     
     
+}
+
+extension HomeViewController: MKMapViewDelegate{
+    func mapView(_ mapView: MKMapView, viewFor annotation: MKAnnotation) -> MKAnnotationView? {
+        if let annotation = annotation as? DriverAnnotation {
+            let view = MKAnnotationView(annotation: annotation, reuseIdentifier: driverAnnotation)
+            view.image = #imageLiteral(resourceName: "chevron-sign-to-right")
+            return view
+        }
+        
+        return nil
+    }
 }

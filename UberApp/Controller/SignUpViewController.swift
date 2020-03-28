@@ -8,11 +8,12 @@
 
 import UIKit
 import Firebase
+import GeoFire
 
 class SignUpViewController: UIViewController {
     
     // MARK: - Properties
-    
+    private var location = LocationHandler.shared.locationManager.location
     private let titleLabel : UILabel = {
         let label = UILabel()
         label.text = "uber"
@@ -99,6 +100,7 @@ class SignUpViewController: UIViewController {
     }
     
     // MARK: - Helper Methods
+    
     func setupAlreadyHaveAccountBtn(){
         view.addSubview(alreadyHaveAccountButton)
         alreadyHaveAccountButton.anchor(bottom: view.safeAreaLayoutGuide.bottomAnchor , height: 32 )
@@ -132,6 +134,16 @@ class SignUpViewController: UIViewController {
         navigationController?.popViewController(animated: true)
     }
     
+    fileprivate func saveUserDataToDB(_ uid: String, _ values: [String : Any]) {
+        USERS_REF.child(uid).updateChildValues(values) { [weak self](error, ref) in
+            if let error = error {
+                print("Error while saving user data ti db => " , error.localizedDescription)
+                return
+            }
+            self?.showHomeViewController()
+        }
+    }
+    
     @objc func signUpBtnPressed(){
         guard let email = emailTextField.text ,
             let password = passwordTextField.text ,
@@ -142,7 +154,7 @@ class SignUpViewController: UIViewController {
         let accountTypeIndex = accountTypeSegmentedControl.selectedSegmentIndex
         
         //signup user
-        Auth.auth().createUser(withEmail: email, password: password) { (result, error) in
+        Auth.auth().createUser(withEmail: email, password: password) {(result, error) in
             if let error = error {
                 print("Error while registering user => " , error.localizedDescription)
             }else {
@@ -154,31 +166,39 @@ class SignUpViewController: UIViewController {
                               "fullName": fullName,
                               "accountType" : accountTypeIndex] as [String : Any]
                 
-                Database.database().reference().child("users").child(uid).updateChildValues(values) { (error, ref) in
-                    if let error = error {
-                        print("Error while saving user data ti db => " , error.localizedDescription)
-                        return
+                if accountTypeIndex == 1{
+                    guard let location = self.location else { return }
+                    let geoFire = GeoFire(firebaseRef: DRIVER_LOC)
+                    geoFire.setLocation(location, forKey: uid) { (error) in
+                        guard let error = error else {
+                            self.saveUserDataToDB(uid, values)
+                            return }
+                        print("Error while saving driver location to firebase db => " , error.localizedDescription)
                     }
-                    
-                    guard let controller = UIApplication.shared.connectedScenes
-                        .filter({$0.activationState == .foregroundActive})
-                        .map({$0 as? UIWindowScene})
-                        .compactMap({$0})
-                        .first?
-                        .windows
-                        .filter({$0.isKeyWindow}).first?
-                        .rootViewController as? HomeViewController
-                        else
-                    {
-                        print("can't fetch HomeViewController")
-                        return
-                    }
-                    
-                    controller.configUI()
-                    self.dismiss(animated: true, completion: nil)
                 }
+                
+                self.saveUserDataToDB(uid, values)
                 
             }
         }
+    }
+    
+    func showHomeViewController(){
+        guard let controller = UIApplication.shared.connectedScenes
+            .filter({$0.activationState == .foregroundActive})
+            .map({$0 as? UIWindowScene})
+            .compactMap({$0})
+            .first?
+            .windows
+            .filter({$0.isKeyWindow}).first?
+            .rootViewController as? HomeViewController
+            else
+        {
+            print("can't fetch HomeViewController")
+            return
+        }
+        
+        controller.configUI()
+        self.dismiss(animated: true, completion: nil)
     }
 }

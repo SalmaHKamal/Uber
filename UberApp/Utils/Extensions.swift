@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import MapKit
 
 extension UIColor {
     static func rgb(red : CGFloat , green : CGFloat , blue : CGFloat , alpha : CGFloat = 1) -> UIColor {
@@ -124,5 +125,18 @@ extension UITextField {
         tf.font = UIFont.systemFont(ofSize: 16)
         tf.textColor = UIColor(white: 1, alpha: 0.8)
         return tf
+    }
+}
+
+extension MKPlacemark {
+    var address: String? {
+        get {
+            guard let subThoroughfare = subThoroughfare else { return nil }
+            guard let thoroughfare = thoroughfare else { return nil }
+            guard let locality = locality else { return nil }
+            guard let adminArea = administrativeArea else { return nil }
+            
+            return "\(subThoroughfare) \(thoroughfare), \(locality), \(adminArea) "
+        }
     }
 }

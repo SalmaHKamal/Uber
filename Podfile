@@ -6,10 +6,11 @@ target 'UberApp' do
   use_frameworks!
 
   # Pods for UberApp
-  pod 'Firebase/Auth'
-  pod 'GeoFire' , '>= 1.1'
+  pod 'Firebase/Core'
   pod 'Firebase/Database'
+  pod 'Firebase/Auth'
   pod 'Firebase/Storage'
+  pod 'GeoFire', '>= 1.1'
 
   target 'UberAppTests' do
     inherit! :search_paths

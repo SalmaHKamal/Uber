@@ -12,10 +12,20 @@ import MapKit
 
 private let reuseIdentifier = "Cell"
 private let driverAnnotation = "DriverAnnotation"
+enum ActionButtonConfiguration {
+    case dismissal
+    case openMenu
+    
+    init() {
+        self = .openMenu
+    }
+}
+
 
 class HomeViewController: UIViewController {
     
     // MARK: - Properties
+    private var searchResults = [MKPlacemark]()
     private let mapView = MKMapView()
     private let locationManager = LocationHandler.shared.locationManager
     private let whereToView = WhereToView()
@@ -27,15 +37,28 @@ class HomeViewController: UIViewController {
             searchLlocationView.user = user
         }
     }
+    private var actionButtonConfig = ActionButtonConfiguration()
+    
+    private let actionButton: UIButton = {
+        let btn = UIButton(type: .system)
+        btn.setImage(#imageLiteral(resourceName: "baseline_menu_black_36dp").withRenderingMode(.alwaysOriginal), for: .normal)
+        btn.addTarget(self, action: #selector(actionButtonPressed), for: .touchUpInside)
+        return btn
+    }()
     
     
     // MARK: - LifeCylce
-    override func viewDidLoad() {
-        isUserLoggedIn()
-        enableLocationService()
+    func configure() {
+        configUI()
         setupTableView()
         fetchUserData()
         fetchDriverData()
+    }
+    
+    override func viewDidLoad() {
+        isUserLoggedIn()
+        enableLocationService()
+        configure()
     }
     
     // MARK: - APi calls
@@ -67,36 +90,25 @@ class HomeViewController: UIViewController {
             if !driverIsVisible {
                 self.mapView.addAnnotation(annotation)
             }
-            
-//            guard let coordinate = driver.location?.coordinate else { return }
-//            let annotation = DriverAnnotation(uid: driver.uid, coordinate: coordinate )
-//            let updateAnnotation = self?.mapView.annotations.contains(where: { (anno) -> Bool in
-//                guard let anno = anno as? DriverAnnotation else { return false }
-//                if anno.uid == driver.uid {
-//                    self?.updateAnnotationView(annotation: annotation)
-//                    return true
-//                }else {
-//                    return false
-//                }
-//            })
-//
-//            if !(updateAnnotation ?? false) {
-//                self?.addNewAnnotation(annotation: annotation)
-//            }
-////            self?.mapView.annotations.forEach { (anno) in
-////                guard let anno = anno as? DriverAnnotation else { return }
-////                if anno.uid == driver.uid{
-////                    guard let coordinate = driver.location?.coordinate else { return }
-////                    self?.updateAnnotationView(annotation: anno , coordinate: coordinate)
-////                }else {
-////                    self?.addNewAnnotation(annotation: annotation)
-////                }
-////            }
         }
     }
     
     
     // MARK: - Helper Methods
+    @objc func actionButtonPressed(){
+        switch actionButtonConfig {
+        case .dismissal:
+            print("dismiss")
+            UIView.animate(withDuration: 0.2) {
+                self.whereToView.alpha = 1
+            }
+            self.actionButtonConfig = .openMenu
+            actionButton.setImage(#imageLiteral(resourceName: "baseline_menu_black_36dp").withRenderingMode(.alwaysOriginal), for: .normal)
+        case .openMenu:
+            print("openMenu")
+        }
+    }
+    
     func addNewAnnotation(annotation: MKAnnotation){
         mapView.addAnnotation(annotation)
     }
@@ -107,7 +119,7 @@ class HomeViewController: UIViewController {
     
     func isUserLoggedIn(){
         if let _ = Auth.auth().currentUser?.uid {
-            configUI()
+            configure()
         }else {
             DispatchQueue.main.async {
                 let nav = UINavigationController(rootViewController: LoginViewController())
@@ -132,6 +144,14 @@ class HomeViewController: UIViewController {
     
     func configUI(){
         setupMapView()
+        setupActionButton()
+        setupWhereToView()
+        
+    }
+    
+    func setupActionButton(){
+        view.addSubview(actionButton)
+        actionButton.anchor(top: view.safeAreaLayoutGuide.topAnchor, left: view.leftAnchor, paddingLeft: 16, paddingTop: 16, width: 30, height: 30)
     }
     
     func setupMapView(){
@@ -140,13 +160,13 @@ class HomeViewController: UIViewController {
         mapView.frame = view.frame
         mapView.showsUserLocation = true
         mapView.userTrackingMode = .follow
-        setupWhereToView()
+        
     }
     
     func setupWhereToView(){
         view.addSubview(whereToView)
         whereToView.centerX(inView: view)
-        whereToView.anchor(top: view.safeAreaLayoutGuide.topAnchor, paddingTop: 32, width: view.frame.width - 64)
+        whereToView.anchor(top: actionButton.bottomAnchor , paddingTop: 32, width: view.frame.width - 64)
         whereToView.alpha = 0
         
         UIView.animate(withDuration: 0.5) {
@@ -166,6 +186,14 @@ class HomeViewController: UIViewController {
 
 // MARK: - Locations View
 extension HomeViewController {
+    fileprivate func dismissSearchLocationView(_ safeSelf: HomeViewController , completion:((Bool) -> Void)? = nil) {
+        UIView.animate(withDuration: 0.2, animations: {
+            safeSelf.searchLlocationView.alpha = 0
+            safeSelf.tableView.frame.origin.y = safeSelf.view.frame.height
+            safeSelf.searchLlocationView.removeFromSuperview()
+        }, completion: completion)
+    }
+    
     func setupLocationView(){
         view.addSubview(searchLlocationView)
         searchLlocationView.alpha = 0
@@ -181,14 +209,34 @@ extension HomeViewController {
         
         searchLlocationView.didPressBackButton = { [weak self]  in
             guard let safeSelf = self else { return }
-            UIView.animate(withDuration: 0.2, animations: {
-                safeSelf.searchLlocationView.alpha = 0
-                safeSelf.tableView.frame.origin.y = safeSelf.view.frame.height
-            }) { (_) in
-                safeSelf.searchLlocationView.removeFromSuperview()
-                UIView.animate(withDuration: 0.2) {
-                    safeSelf.whereToView.alpha = 1
-                }
+            safeSelf.dismissSearchLocationView(safeSelf)
+        }
+        
+        searchLlocationView.didEnterData = { [unowned self] query in
+            self.search(text: query) { (placemarks) in
+                self.searchResults = placemarks
+                self.tableView.reloadData()
+            }
+        }
+    }
+    
+    func search(text: String, completion: @escaping([MKPlacemark]) -> Void){
+        var results = [MKPlacemark]()
+        let request = MKLocalSearch.Request()
+        request.region = mapView.region
+        request.naturalLanguageQuery = text
+        
+        let search = MKLocalSearch(request: request)
+        search.start { (response, error) in
+            if let error = error {
+                print("Error while getting search result => " , error.localizedDescription)
+            }else {
+                guard let response = response else { return }
+                response.mapItems.forEach({ (item) in
+                    results.append(item.placemark)
+                })
+                
+                completion(results)
             }
         }
     }
@@ -246,17 +294,34 @@ extension HomeViewController : UITableViewDelegate , UITableViewDataSource {
     }
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return section == 0 ? 2 : 4
+        return section == 0 ? 2 : searchResults.count
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         guard let cell = tableView.dequeueReusableCell(withIdentifier: reuseIdentifier, for: indexPath) as? LocationCell
             else { return UITableViewCell() }
-        
+        if indexPath.section != 0 {
+            cell.placemark = searchResults[indexPath.row]
+        }
         return cell
     }
     
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        handleActionButton()
+        dismissSearchLocationView(self) { _  in
+            let placemark = self.searchResults[indexPath.row]
+            let annotation = MKPointAnnotation()
+            annotation.coordinate = placemark.coordinate
+            self.mapView.addAnnotation(annotation)
+            self.mapView.selectAnnotation(annotation, animated: true)
+        }
+        
+    }
     
+    func handleActionButton(){
+        actionButton.setImage(#imageLiteral(resourceName: "baseline_arrow_back_black_36dp-1").withRenderingMode(.alwaysOriginal), for: .normal)
+        self.actionButtonConfig = .dismissal
+    }
     
 }
 

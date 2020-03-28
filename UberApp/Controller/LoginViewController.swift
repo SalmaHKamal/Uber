@@ -133,7 +133,7 @@ class LoginViewController: UIViewController {
                 return
             }
             
-            controller.configUI()
+            controller.configure()
             self.dismiss(animated: true, completion: nil)
             
         }

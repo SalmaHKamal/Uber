@@ -17,6 +17,8 @@ class SearchLocationView: UIView {
         }
     }
     var didPressBackButton : (() -> Void)?
+    var didEnterData : ((_ text: String) -> Void)?
+    
     private let backButton : UIButton = {
         let btn = UIButton()
         btn.setImage(#imageLiteral(resourceName: "baseline_arrow_back_black_36dp").withRenderingMode(.alwaysOriginal), for: .normal)
@@ -31,7 +33,7 @@ class SearchLocationView: UIView {
         return label
     }()
     
-    private let sourceLocationTextField : UITextField = {
+    private lazy var sourceLocationTextField : UITextField = {
         let tf = UITextField()
         tf.placeholder = "Current Location"
         tf.backgroundColor = .groupTableViewBackground
@@ -41,10 +43,11 @@ class SearchLocationView: UIView {
         
         tf.leftView = paddingView
         tf.leftViewMode = .always
+        tf.delegate = self
         return tf
     }()
     
-    private let destinationLocationTextField : UITextField = {
+    private lazy var destinationLocationTextField : UITextField = {
         let tf = UITextField()
         tf.placeholder = "Enter a distination ..."
         tf.backgroundColor = .lightGray
@@ -54,6 +57,7 @@ class SearchLocationView: UIView {
         
         tf.leftView = paddingView
         tf.leftViewMode = .always
+        tf.delegate = self
         return tf
     }()
     
@@ -128,4 +132,15 @@ class SearchLocationView: UIView {
         didPressBackButton?()
     }
     
+}
+
+extension SearchLocationView: UITextFieldDelegate{
+    func textFieldShouldReturn(_ textField: UITextField) -> Bool {
+        if let query = textField.text {
+            didEnterData?(query)
+            return true
+        }
+        
+        return false
+    }
 }
